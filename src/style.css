@@ -342,13 +342,13 @@ body {
     padding: 0 16px 16px;
     gap: 12px;
     z-index: 1000;
-    transition: transform 0.3s ease;
-    transform: translateY(0);
+    transition: height 0.3s ease;
     box-shadow: 0 -6px 30px rgba(0,0,0,0.5);
+    overflow: hidden;
   }
 
   #sidebar.sheet-collapsed {
-    transform: translateY(calc(100% - 130px));
+    height: 130px;
   }
 
   #sheet-handle {
@@ -356,9 +356,14 @@ body {
     justify-content: center;
     align-items: center;
     padding: 10px 0 6px;
-    cursor: pointer;
-    touch-action: manipulation;
+    cursor: grab;
+    touch-action: none;
     flex-shrink: 0;
+    user-select: none;
+  }
+
+  #sheet-handle:active {
+    cursor: grabbing;
   }
 
   .handle-pill {

@@ -389,10 +389,62 @@ restoreFromHash();
 const sidebar = document.getElementById('sidebar');
 const sheetHandle = document.getElementById('sheet-handle');
 
-function sheetExpand() { sidebar.classList.remove('sheet-collapsed'); }
-function sheetCollapse() { sidebar.classList.add('sheet-collapsed'); }
+const SHEET_COLLAPSED_H = 130;
+const SHEET_EXPANDED_H  = () => Math.round(window.innerHeight * 0.64);
 
-sheetHandle.addEventListener('click', () => sidebar.classList.toggle('sheet-collapsed'));
+function sheetExpand()   { sidebar.style.height = SHEET_EXPANDED_H() + 'px'; sidebar.classList.remove('sheet-collapsed'); }
+function sheetCollapse() { sidebar.style.height = SHEET_COLLAPSED_H + 'px'; sidebar.classList.add('sheet-collapsed'); }
+
+// ── Drag handle ──
+let dragStartY = 0, dragStartH = 0, isDragging = false, lastVY = 0, lastT = 0;
+
+function onDragStart(e) {
+  if (window.innerWidth > 700) return;
+  isDragging = true;
+  sidebar.style.transition = 'none';
+  dragStartY = e.touches ? e.touches[0].clientY : e.clientY;
+  dragStartH = sidebar.offsetHeight;
+  lastVY = 0; lastT = Date.now();
+  e.preventDefault();
+}
+
+function onDragMove(e) {
+  if (!isDragging) return;
+  const y   = e.touches ? e.touches[0].clientY : e.clientY;
+  const now = Date.now();
+  lastVY = (y - dragStartY - (lastVY ? (y - dragStartY) : 0)) / Math.max(now - lastT, 1);
+  lastT = now;
+  const delta  = dragStartY - y;
+  const newH   = Math.min(Math.max(dragStartH + delta, SHEET_COLLAPSED_H), window.innerHeight * 0.92);
+  sidebar.style.height = newH + 'px';
+  e.preventDefault();
+}
+
+function onDragEnd(e) {
+  if (!isDragging) return;
+  isDragging = false;
+  sidebar.style.transition = '';
+  const y     = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
+  const delta = dragStartY - y;
+  const expandedH = SHEET_EXPANDED_H();
+  // snap: fast swipe up, or dragged more than 30% of the way → expand; else collapse
+  if (lastVY < -0.4 || delta > (expandedH - SHEET_COLLAPSED_H) * 0.3) {
+    sheetExpand();
+  } else if (lastVY > 0.4 || delta < -(expandedH - SHEET_COLLAPSED_H) * 0.3) {
+    sheetCollapse();
+  } else {
+    // snap to whichever is closer
+    const mid = (expandedH + SHEET_COLLAPSED_H) / 2;
+    sidebar.offsetHeight > mid ? sheetExpand() : sheetCollapse();
+  }
+}
+
+sheetHandle.addEventListener('touchstart', onDragStart, { passive: false });
+sheetHandle.addEventListener('touchmove',  onDragMove,  { passive: false });
+sheetHandle.addEventListener('touchend',   onDragEnd);
+sheetHandle.addEventListener('mousedown',  onDragStart);
+window.addEventListener('mousemove', onDragMove);
+window.addEventListener('mouseup',   onDragEnd);
 
 // Tap the map to collapse sheet on mobile
 document.getElementById('map').addEventListener('click', () => {
