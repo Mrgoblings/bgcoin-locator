@@ -60,9 +60,8 @@ const highlightIcon = L.divIcon({
 });
 
 // ── Map ──
-const map = L.map('map', { zoomControl: true }).setView([42.73, 25.48], 7);
+const map = L.map('map', { zoomControl: true, attributionControl: false }).setView([42.73, 25.48], 7);
 L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-  attribution: '&copy; OpenStreetMap &copy; CARTO',
   subdomains: 'abcd', maxZoom: 19,
 }).addTo(map);
 
