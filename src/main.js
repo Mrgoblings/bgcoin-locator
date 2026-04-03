@@ -130,6 +130,7 @@ function resetHighlights() {
 const resultPanel = document.getElementById('result-panel');
 
 function showCityResult(city, collections) {
+  sheetExpand();
   resultPanel.className = 'has-result';
   const inner = `
     <div class="result-city">${city}</div>
@@ -141,6 +142,7 @@ function showCityResult(city, collections) {
 }
 
 function showLocationResult({ displayName, nearestCity, distanceKm, collections }) {
+  sheetExpand();
   resultPanel.className = 'has-result';
   let inner = `<div class="result-city">${displayName}</div>`;
   if (nearestCity) {
@@ -160,6 +162,7 @@ function showNearbyResult(lat, lon, animate = true) {
   if (animate) map.flyTo([lat, lon], 9, { duration: 1.2 });
   else map.setView([lat, lon], 9);
 
+  sheetExpand();
   resultPanel.className = 'has-result';
   resultPanel.innerHTML = `
     <button class="result-close">✕ Back</button>
@@ -284,6 +287,7 @@ document.getElementById('search-input').addEventListener('keydown', e => {
 // ── Geolocation ──
 let myLocationMarker = null;
 const locateBtn = document.getElementById('locate-btn');
+const fabLocate = document.getElementById('fab-locate');
 
 function applyNearby(lat, lon, animate = true) {
   if (myLocationMarker) map.removeLayer(myLocationMarker);
@@ -293,24 +297,24 @@ function applyNearby(lat, lon, animate = true) {
   showNearbyResult(lat, lon, animate);
 }
 
-locateBtn.addEventListener('click', () => {
+function doLocate() {
   if (!navigator.geolocation) {
     resultPanel.className = 'has-result';
     resultPanel.innerHTML = `<div style="color:#e06060">Geolocation not supported.</div>`;
     return;
   }
-  locateBtn.disabled = true;
+  [locateBtn, fabLocate].forEach(b => { b.disabled = true; });
   locateBtn.textContent = '⏳ Locating…';
   navigator.geolocation.getCurrentPosition(
     (pos) => {
-      locateBtn.disabled = false;
+      [locateBtn, fabLocate].forEach(b => { b.disabled = false; });
       locateBtn.textContent = '📍 Use my location';
       const { latitude: lat, longitude: lon } = pos.coords;
       setHash({ nearby: `${lat.toFixed(5)},${lon.toFixed(5)}` });
       applyNearby(lat, lon, true);
     },
     (err) => {
-      locateBtn.disabled = false;
+      [locateBtn, fabLocate].forEach(b => { b.disabled = false; });
       locateBtn.textContent = '📍 Use my location';
       resultPanel.className = 'has-result';
       const msg = err.code === 1 ? 'Location access denied.' : 'Could not get your location.';
@@ -321,7 +325,10 @@ locateBtn.addEventListener('click', () => {
     },
     { timeout: 10000, enableHighAccuracy: true }
   );
-});
+}
+
+locateBtn.addEventListener('click', doLocate);
+fabLocate.addEventListener('click', doLocate);
 
 // ── Restore from URL hash on load / navigation ──
 async function restoreFromHash(state) {
@@ -377,3 +384,17 @@ window.addEventListener('hashchange', () => {
 });
 
 restoreFromHash();
+
+// ── Mobile bottom sheet ──
+const sidebar = document.getElementById('sidebar');
+const sheetHandle = document.getElementById('sheet-handle');
+
+function sheetExpand() { sidebar.classList.remove('sheet-collapsed'); }
+function sheetCollapse() { sidebar.classList.add('sheet-collapsed'); }
+
+sheetHandle.addEventListener('click', () => sidebar.classList.toggle('sheet-collapsed'));
+
+// Tap the map to collapse sheet on mobile
+document.getElementById('map').addEventListener('click', () => {
+  if (window.innerWidth <= 700) sheetCollapse();
+});

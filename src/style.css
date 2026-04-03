@@ -283,9 +283,136 @@ body {
   text-align: center;
 }
 
+/* ── Sheet handle (hidden on desktop) ── */
+#sheet-handle {
+  display: none;
+}
+
 /* ── Map ── */
 #map {
   flex: 1;
+  position: relative;
+}
+
+/* ── Floating locate button ── */
+#fab-locate {
+  position: absolute;
+  bottom: 20px;
+  right: 12px;
+  z-index: 999;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: none;
+  background: #16181f;
+  color: #4fc3f7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.55);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+#fab-locate:hover { background: #1a2540; color: #81d4fa; }
+#fab-locate:disabled { opacity: 0.5; cursor: default; }
+#fab-locate svg { pointer-events: none; }
+
+/* ── Mobile: bottom sheet layout ── */
+@media (max-width: 700px) {
+  body {
+    flex-direction: column;
+  }
+
+  #map {
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+  }
+
+  #sidebar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 64vh;
+    border-right: none;
+    border-top: 1px solid #2a2d3a;
+    border-radius: 18px 18px 0 0;
+    padding: 0 16px 16px;
+    gap: 12px;
+    z-index: 1000;
+    transition: transform 0.3s ease;
+    transform: translateY(0);
+    box-shadow: 0 -6px 30px rgba(0,0,0,0.5);
+  }
+
+  #sidebar.sheet-collapsed {
+    transform: translateY(calc(100% - 130px));
+  }
+
+  #sheet-handle {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 0 6px;
+    cursor: pointer;
+    touch-action: manipulation;
+    flex-shrink: 0;
+  }
+
+  .handle-pill {
+    width: 40px;
+    height: 4px;
+    background: #3a3d4a;
+    border-radius: 2px;
+  }
+
+  #sidebar h1 {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+
+  .subtitle {
+    display: none;
+  }
+
+  #search-input {
+    font-size: 1rem;
+  }
+
+  #search-btn,
+  #locate-btn {
+    font-size: 1rem;
+    padding: 11px 14px;
+  }
+
+  #city-items li {
+    padding: 10px 12px;
+    font-size: 0.95rem;
+  }
+
+  #city-items .coin-count {
+    font-size: 0.78rem;
+    padding: 2px 9px;
+  }
+
+  #nearby-list {
+    max-height: none;
+  }
+
+  /* keep map accessible above the collapsed sheet */
+  #map {
+    padding-bottom: 130px;
+  }
+
+  #fab-locate {
+    bottom: 148px;
+  }
+
+  .leaflet-control-zoom {
+    margin-bottom: 140px !important;
+  }
 }
 
 /* ── Leaflet popup tweaks ── */
